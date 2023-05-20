@@ -95,6 +95,9 @@ func (c *Chatroom) ReceiveMessage(sessionID string, message string, channel stri
 	c.Channels[channel] = ch
 
 	// Broadcast the message to all connected users
+	for _, user := range c.Users {
+		user.Connection.WriteMessage(1, []byte(message))
+	}
 
 	return nil
 }

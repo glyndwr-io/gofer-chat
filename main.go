@@ -56,18 +56,13 @@ func Websocket(w http.ResponseWriter, r *http.Request) {
 	// While connection is active
 	for {
 		// Open incoming message
-		msgType, msg, err := conn.ReadMessage()
+		_, msg, err := conn.ReadMessage()
 		if err != nil {
 			return
 		}
 
 		err = chatroom.ReceiveMessage("demo-session", string(msg), "main")
 		if err != nil {
-			return
-		}
-
-		// Send message to browser, or return if error
-		if err = conn.WriteMessage(msgType, msg); err != nil {
 			return
 		}
 	}
