@@ -9,7 +9,7 @@
     onMount(() => {
         if(!browser) return
 
-        const socket = new WebSocket("ws://localhost:8080/ws")
+        socket = new WebSocket("ws://localhost:8080/ws")
 
         socket.onopen = function () {
             output.innerHTML += "Status: Connected\n";
