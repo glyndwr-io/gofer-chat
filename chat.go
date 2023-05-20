@@ -46,6 +46,8 @@ func (c *Chatroom) Register(sessionID string, displayName string) error {
 		return errors.New("Session already registered")
 	}
 
+	// Check if display name has been registered
+
 	c.Users[sessionID] = User{DisplayName: displayName, Connection: nil}
 
 	return nil
