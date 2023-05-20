@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
@@ -13,13 +12,7 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-var channels = make(map[string]string)
-var clients = make(map[string]User)
-
-type User struct {
-	DisplayName string
-	Connection  *websocket.Conn
-}
+var chatroom = MakeChatroom()
 
 type HTMLDir struct {
 	d http.Dir
@@ -42,11 +35,21 @@ func (d HTMLDir) Open(name string) (http.File, error) {
 
 // Upgrade and manage the websocket connection
 func Websocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil) // error ignored for sake of simplicity
-
-	// If connection could not be upgraded
+	// Try to upgrade and return if we can't
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println("here")
+		return
+	}
+
+	// Try to register the user and return otherwise
+	chatroom.Register("demo-session", "CoolDude123")
+	if err != nil {
+		return
+	}
+
+	// Try to connect and return if otherwise
+	chatroom.Connect("demo-session", conn)
+	if err != nil {
 		return
 	}
 
@@ -55,11 +58,13 @@ func Websocket(w http.ResponseWriter, r *http.Request) {
 		// Open incoming message
 		msgType, msg, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Println(err)
 			return
 		}
 
-		// do something with message here
+		err = chatroom.ReceiveMessage("demo-session", string(msg), "main")
+		if err != nil {
+			return
+		}
 
 		// Send message to browser, or return if error
 		if err = conn.WriteMessage(msgType, msg); err != nil {
